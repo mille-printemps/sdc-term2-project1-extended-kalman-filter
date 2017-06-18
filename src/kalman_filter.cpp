@@ -25,7 +25,8 @@ void KalmanFilter::Predict() {
 }
 
 void KalmanFilter::Update(const VectorXd &z) {
-  UpdateKF(z, H_ * x_);
+  VectorXd y = z - H_ * x_;
+  UpdateKF(y);
 }
 
 void KalmanFilter::UpdateEKF(const VectorXd &z) {
@@ -36,13 +37,27 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
   float c = sqrt(px * px + py * py);
   
   VectorXd hx(3);
-  hx << c, atan(px/px), (px * vx + py * vy)/c;
-  
-  UpdateKF(z, hx);
+  hx << c, atan2(py, px), (px * vx + py * vy)/c;
+
+  VectorXd y = z - hx;
+
+  // Adjust phi to be between -pi and pi
+  float phi = y(1);
+  if (phi < -1 * M_PI) {
+    while (phi < -1 * M_PI) {
+      phi += 2 * M_PI;
+    }
+  } else if (M_PI < phi) {
+    while (M_PI < phi) {
+      phi -= 2 * M_PI;
+    }
+  }
+  y(1) = phi;
+
+  UpdateKF(y);
 }
 
-void KalmanFilter::UpdateKF(const VectorXd &z, const VectorXd &hx) {
-  VectorXd y = z - hx;
+void KalmanFilter::UpdateKF(const VectorXd &y) {
   MatrixXd Ht = H_.transpose();
   MatrixXd S = H_ * P_ * Ht + R_;
   MatrixXd K =  P_ * Ht * S.inverse();
