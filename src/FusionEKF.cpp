@@ -38,14 +38,14 @@ FusionEKF::FusionEKF() {
   Hj_ = MatrixXd::Zero(3, 4);
   
   // State transition matrix
-  ekf_.F_ = MatrixXd(4, 4);
+  ekf_.F_ = MatrixXd::Zero(4, 4);
   ekf_.F_ << 1, 0, 1, 0,
              0, 1, 0, 1,
              0, 0, 1, 0,
              0, 0, 0, 1;
 
   // State covariance matrix
-  ekf_.P_ = MatrixXd(4, 4);
+  ekf_.P_ = MatrixXd::Zero(4, 4);
   ekf_.P_ << 1, 0, 0, 0,
              0, 1, 0, 0,
              0, 0, 1000, 0,
