@@ -36,20 +36,16 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
   float py = x_(1);
   float vx = x_(2);
   float vy = x_(3);
-  
+
+  // atan2 returns a value between -pi and pi even when px is very small
   float rho = sqrt(px * px + py * py);
-  float phi = 0.0;
+  float phi = atan2(py, px);
   float rho_dot = 0.0;
 
-  if(fabs(px) < 0.0001){
-    cout << "UpdateEKF - Error while calculating phi - Division by Zero" << endl;
-  } else {
-    phi = atan2(py, px);
-  }
-  
   // Avoid division by zero
   if (rho < 0.0001) {
-    cout << "UpdateEKF - Error while calculating rho_dot - Division by Zero" << endl;
+    cout << "UpdateEKF - Warning while calculating rho_dot - Division by Zero" << endl;
+    rho_dot = 0.0001;
   } else {
     rho_dot = (px * vx + py * vy) / rho;
   }
