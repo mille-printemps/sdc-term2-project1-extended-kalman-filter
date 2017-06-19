@@ -1,8 +1,10 @@
 #include <math.h>
+#include <iostream>
 #include "kalman_filter.h"
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
+using namespace std;
 
 KalmanFilter::KalmanFilter() {}
 
@@ -34,23 +36,36 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
   float py = x_(1);
   float vx = x_(2);
   float vy = x_(3);
-  float c = sqrt(px * px + py * py);
   
-  VectorXd hx(3);
-  hx << c, atan2(py, px), (px * vx + py * vy)/c;
+  float rho = sqrt(px * px + py * py);
+  float phi = 0.0;
+  float rho_dot = 0.0;
+
+  if(fabs(px) < 0.0001){
+    cout << "UpdateEKF - Error while calculating phi - Division by Zero" << endl;
+  } else {
+    phi = atan2(py, px);
+  }
+  
+  // Avoid division by zero
+  if (rho < 0.0001) {
+    cout << "UpdateEKF - Error while calculating rho_dot - Division by Zero" << endl;
+  } else {
+    rho_dot = (px * vx + py * vy) / rho;
+  }
+  
+  VectorXd hx = VectorXd::Zero(3);
+  hx << rho, phi, rho_dot;
 
   VectorXd y = z - hx;
 
   // Adjust phi to be between -pi and pi
-  float phi = y(1);
-  if (phi < -1 * M_PI) {
-    while (phi < -1 * M_PI) {
-      phi += 2 * M_PI;
-    }
-  } else if (M_PI < phi) {
-    while (M_PI < phi) {
-      phi -= 2 * M_PI;
-    }
+  phi = y(1);
+  while (phi < -M_PI) {
+    phi += 2 * M_PI;
+  }
+  while (M_PI < phi) {
+    phi -= 2 * M_PI;
   }
   y(1) = phi;
 
@@ -58,6 +73,7 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
 }
 
 void KalmanFilter::UpdateKF(const VectorXd &y) {
+  // Update the state using y
   MatrixXd Ht = H_.transpose();
   MatrixXd S = H_ * P_ * Ht + R_;
   MatrixXd K =  P_ * Ht * S.inverse();

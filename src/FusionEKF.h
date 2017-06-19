@@ -12,12 +12,12 @@
 class FusionEKF {
 public:
   /**
-  * Constructor.
+  * Constructor
   */
   FusionEKF();
 
   /**
-  * Destructor.
+  * Destructor
   */
   virtual ~FusionEKF();
 
@@ -45,8 +45,8 @@ private:
   Eigen::MatrixXd H_laser_;
   Eigen::MatrixXd Hj_;
   
-  long noise_ax_;
-  long noise_ay_;
+  float noise_ax_;
+  float noise_ay_;
 };
 
 #endif /* FusionEKF_H_ */
